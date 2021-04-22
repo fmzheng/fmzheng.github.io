@@ -27,7 +27,7 @@
     <link rel="alternative" href="/atom.xml" title="fmzheng的学习笔记" type="application/atom+xml">
   
   
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/avatar/d1.png">
   
   
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png">
@@ -65,7 +65,7 @@
 <div class="intrude-less">
 	<header id="header" class="inner">
 		<a href="/" class="profilepic">
-			<img src="/img/head.jpg" class="js-avatar">
+			<img src="/avatar/avatar.jpg" class="js-avatar">
 		</a>
 		<hgroup>
 			<h1 class="header-author"><a href="/">zhengfangming</a></h1>
@@ -148,7 +148,7 @@
 		<header id="header" class="inner">
 			<div class="profilepic">
 				<a href="/">
-					<img src="/img/head.jpg" class="js-avatar">
+					<img src="/avatar/avatar.jpg" class="js-avatar">
 				</a>
 			</div>
 			<hgroup>
@@ -225,155 +225,10 @@
     
   <div class="article-entry" itemprop="articleBody">
     
-    <h1 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h1><h2 id="JVM内存区域"><a href="#JVM内存区域" class="headerlink" title="JVM内存区域"></a>JVM内存区域</h2><h3 id="1-运行时数据区域"><a href="#1-运行时数据区域" class="headerlink" title="1. 运行时数据区域"></a>1. 运行时数据区域</h3><p><strong>JDK 1.8 之前：</strong></p>
-<p><img src="https://snailclimb.gitee.io/javaguide/docs/java/jvm/pictures/java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/JVM%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F.png" alt="img"></p>
-<p><strong>JDK 1.8 ：</strong></p>
-<p><img src="https://snailclimb.gitee.io/javaguide/docs/java/jvm/pictures/java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9FJDK1.8.png" alt="img"></p>
-<p><strong>线程私有：</strong></p>
-<ul>
-<li>程序计数器</li>
-<li>虚拟机栈</li>
-<li>本地方法栈</li>
-</ul>
-<p><strong>线程共享：</strong></p>
-<ul>
-<li>堆</li>
-<li>方法去</li>
-<li>直接内存</li>
-</ul>
-<h4 id="1-1-程序计数器"><a href="#1-1-程序计数器" class="headerlink" title="1.1 程序计数器"></a>1.1 程序计数器</h4><p>程序计数器可以当做是当前线程所执行字节码的行号指示器，<strong>字节码解释器工作时通过改变计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常、线程恢复等功能都需要依赖这个计数器</strong></p>
-<p>另外，<strong>为了切换线程后能恢复到正确的执行位置，每个线程都有一个独立的程序计数器，各个线程互不影响，随着线程的创建而创建，随着线程的结束而死亡</strong></p>
-<p><strong>总结</strong></p>
-<ol>
-<li>字节码解释器通过改变程序计数器来一次读取指令，从而实现代码的流程控制</li>
-<li>多线程情况下，程序计数器用来记录当前线程所执行的位置，从而当线程切换回来的时候能得知之前的运行位置</li>
-</ol>
-<p><strong>程序计数器是唯一一个不会出现<code>OutOfMemoryError</code>的内存区域。</strong></p>
-<h4 id="1-2-虚拟机栈"><a href="#1-2-虚拟机栈" class="headerlink" title="1.2 虚拟机栈"></a>1.2 虚拟机栈</h4><p>虚拟机栈也是线程私有的，生命周期与线程相同，描述的是Java方法执行的内存模型，每次方法调用的数据都是通过栈传递的。</p>
-<p>Java内存可以分为<strong>堆内存（Heap）和栈内存（Stack），其中栈就是虚拟机栈，或者说是虚拟机栈中局部变量表部分。</strong></p>
-<p><strong>特点：</strong>先进后出，线程内存独享，生命周期与线程相同。</p>
-<p><strong>Java 虚拟机栈会出现两种错误：<code>StackOverFlowError</code> 和 <code>OutOfMemoryError</code>。</strong></p>
-<ul>
-<li><strong><code>StackOverFlowError</code>：</strong> 若 Java 虚拟机栈的内存大小不允许动态扩展，那么当线程请求栈的深度超过当前 Java 虚拟机栈的最大深度的时候，就抛出 <code>StackOverFlowError</code> 错误。</li>
-<li><strong><code>OutOfMemoryError</code>：</strong> Java 虚拟机栈的内存大小可以动态扩展， 如果虚拟机在动态扩展栈时无法申请到足够的内存空间，则抛出<code>OutOfMemoryError</code>异常异常。</li>
-</ul>
-<p><strong>单位：栈帧</strong>  实际上Java虚拟机栈是由一个个栈帧组成，每个栈帧中都拥有：<strong>局部变量表、操作数栈、动态链接、方法出口信息</strong>。</p>
-<blockquote>
-<ul>
-<li><p><strong>局部变量表：</strong>由<strong>基本数据类型</strong>和对象引用组成</p>
-</li>
-<li><p>作用是用来储存方法中的局部变量</p>
-</li>
-<li><p>基本单位<code>slot</code></p>
-</li>
-<li><p>局部变量表的大小在编译器就确定了，所以在程序执行期间大小不会改变</p>
-</li>
-<li><p>如果存储的是基本数据类型那么就直接存储值</p>
-</li>
-<li><p>如果存储的是对象引用那么存储对象的引用地址（<code>reference</code>）（堆中）</p>
-<ul>
-<li><p><strong><code>reference</code>的两种方式：</strong></p>
-</li>
-<li><p><strong>直接引用</strong></p>
-<p><code>reference</code>直接指向对象，对象中指向对象类型数据</p>
-<p>优点：速度快，节约指针开销。<code>HotSpot</code>采用的主要方式</p>
-<p><img src="https://user-gold-cdn.xitu.io/2020/1/14/16fa331e22776f4a?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt="img"></p>
-</li>
-<li><p><strong>使用句柄</strong></p>
-<p><code>Java</code>堆中会维护一个句柄池，句柄池分别指向对象实例（堆）和对象类型方法（方法区）</p>
-<p>优点：对象移动只需要改变句柄池的指向地址，不需要改变引用的指向地址。稳定</p>
-<p><img src="https://user-gold-cdn.xitu.io/2020/1/14/16fa332948366065?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt="img"></p>
-</li>
-</ul>
-</li>
-<li><p><strong>操作数栈：</strong></p>
-</li>
-<li><p>功能：实现程序功能</p>
-</li>
-<li><p><strong>动态链接：</strong></p>
-</li>
-<li><p>静态解析：符号引用大部分会在类加载阶段或者第一次使用的时候转化为直接引用</p>
-</li>
-<li><p>动态连接: 将在每一次的运行期期间转化为直接引用</p>
-</li>
-</ul>
-<blockquote>
-<p>直接引用：当类已经加载到虚拟机中，通过地址直接调用该类</p>
-<p>符号引用（常量池中）：在编译的时候还不知道类是否已经加载，先用符号代替该类，等时机运行在使用直接引用替换间接引用。</p>
-</blockquote>
-<ul>
-<li><strong>方法出口信息：</strong>当一个方法执行完毕之后，要返回之前调用它的地方，因此在栈帧中必须保存一个方法返回地址。</li>
-</ul>
-</blockquote>
-<h4 id="1-3-本地方法栈"><a href="#1-3-本地方法栈" class="headerlink" title="1.3 本地方法栈"></a>1.3 本地方法栈</h4><p>与虚拟机栈发挥的作用相似，区别：<strong>虚拟机栈为虚拟机执行<code>Java</code>（字节码）方法服务，本地方法栈为虚拟机使用到的<code>Native</code>方法（不一定是用java开发的）服务</strong>。在<code>HotSpot</code>虚拟机中和<code>Java</code>虚拟机栈合二为一。</p>
-<h4 id="1-4-堆"><a href="#1-4-堆" class="headerlink" title="1.4 堆"></a>1.4 堆</h4><p><code>Java</code>虚拟机中所管理的内存最大的一块，是所有线程共享的一块内存区域，在虚拟机启动时创建。<strong>该内存区域的唯一目的是存放内存对象，“几乎”所有的对象实例以及数组都在这里分配内存。</strong></p>
-<p><strong>为什么是“几乎”，从jdk1.7开始已经默认开启逃逸分析，如果某些方法中的对象引用没有被返回或者被外部引用（也就是未逃逸），那么对象可以直接在栈上分配内存</strong></p>
-<p><code>Java</code>堆是垃圾收集器管理的主要区域，因此也被称作**<code>GC</code>堆(<code>Garbage Collected Heap</code>)<strong>,从垃圾回收的角度，由于现在收集器基本都采用分代垃圾收集算法，所以 Java 堆还可以细分为：新生代和老年代：再细致一点有：Eden 空间、From Survivor、To Survivor 空间等。</strong>进一步划分的目的是更好地回收内存，或者更快地分配内存。**</p>
-<p>在 JDK 7 版本及JDK 7 版本之前，堆内存被通常被分为下面三部分：</p>
-<ol>
-<li>新生代内存</li>
-<li>老年代</li>
-<li>永生代</li>
-</ol>
-<p><img src="https://snailclimb.gitee.io/javaguide/docs/java/jvm/pictures/java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/JVM%E5%A0%86%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84-JDK7.png" alt="JVM堆内存结构-JDK7"></p>
-<p>JDK8以后方法区被彻底删除，取而代之为元空间，元空间使用的是直接内存</p>
-<p><img src="https://snailclimb.gitee.io/javaguide/docs/java/jvm/pictures/java%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/JVM%E5%A0%86%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84-jdk8.png" alt="JVM堆内存结构-JDK8"></p>
-<p><strong>上图所示的 Eden 区、两个 Survivor 区都属于新生代（为了区分，这两个 Survivor 区域按照顺序被命名为 from 和 to），中间一层属于老年代。</strong></p>
-<p>堆这里最容易出现的就是 <code>OutOfMemoryError</code> 错误，并且出现这种错误之后的表现形式还会有几种，比如：</p>
-<ol>
-<li><strong><code>OutOfMemoryError: GC Overhead Limit Exceeded</code></strong> ： 当JVM花太多时间执行垃圾回收并且只能回收很少的堆空间时，就会发生此错误。</li>
-<li><strong><code>java.lang.OutOfMemoryError: Java heap space</code></strong> :假如在创建新的对象时, 堆内存中的空间不足以存放新创建的对象, 就会引发<code>java.lang.OutOfMemoryError: Java heap space</code> 错误。(和本机物理内存无关，和你配置的内存大小有关！)</li>
-</ol>
-<h4 id="1-5-方法区"><a href="#1-5-方法区" class="headerlink" title="1.5 方法区"></a>1.5 方法区</h4><p>方法区与 Java 堆一样，是各个线程共享的内存区域，它用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。虽然 <strong>Java 虚拟机规范把方法区描述为堆的一个逻辑部分</strong>，但是它却有一个别名叫做 <strong>Non-Heap（非堆）</strong>，目的应该是与 Java 堆区分开来。</p>
-<p><strong>为什么要将永久代替换为元空间呢？</strong></p>
-<ol>
-<li>整个永久代有一个jvm设置的固定大小上限，无法调整。但是元空间使用的是直接内存，受本机可用内存的限制，会比原来内存溢出出现的几率更小。<ul>
-<li>当元空间内存溢出的时候会得到如下错误<code> java.lang.OutOfMemoryError: MetaSpace</code></li>
-</ul>
-</li>
-<li>元空间放的是类的源数据，这样加载多少类的元数据就不由 <code>MaxPermSize</code> 控制了, 而由系统的实际可用空间来控制，这样能加载的类就更多了。</li>
-<li>在 JDK8，合并 HotSpot 和 JRockit 的代码时, JRockit 从来没有一个叫永久代的东西, 合并之后就没有必要额外的设置这么一个永久代的地方了。</li>
-</ol>
-<h4 id="1-6-运行时常量池"><a href="#1-6-运行时常量池" class="headerlink" title="1.6 运行时常量池"></a>1.6 运行时常量池</h4><p>运行时常量池是方法区的一部分，<code>Class</code>文件中除了有类的版本，字段，方法，还有常量池。</p>
-<p>同样受到方法区相同的内存限制，无法申请到内存的时候也会抛出OOM异常</p>
-<h3 id="2-HotSpot虚拟机对象"><a href="#2-HotSpot虚拟机对象" class="headerlink" title="2. HotSpot虚拟机对象"></a>2. <code>HotSpot</code>虚拟机对象</h3><h4 id="2-1-对象的创建"><a href="#2-1-对象的创建" class="headerlink" title="2.1 对象的创建"></a>2.1 对象的创建</h4><ol>
-<li><p><strong>类加载检查</strong></p>
-<p>虚拟机遇到<code>new</code>指令时候，先检查指令的参数时候能在常量池中定位到这个类的符号引用，并且检查这个符号引用的类是否已经被加载过、解析和初始化过。如果没有，就必须先执行响应的类加载过程。</p>
-</li>
-<li><p><strong>分配内存</strong></p>
-<p>对象所需内存在类加载完成后便可以确定，为对象分配空间的任务相当于把一块确定大小的内存从Java堆中划分出来，分配方式有“指针碰撞”和“空闲列表”两种，选择哪种方式由Java堆是否规整决定。<strong>当java堆采用的垃圾收集器的算法是“标记-整理”（也称作“标记-压缩”）的时候，Java堆内存规整，所以采用“指针碰撞”，当算法为“标记-清除”的时候，Java堆不规整，所以采用“空闲列表”。</strong></p>
-<ul>
-<li><strong>指针碰撞</strong>：<ul>
-<li>试用场合：Java堆内存规整的情况。(即没有内存碎片)</li>
-<li>原理：用过的内存放一边，没有用过的放另外一边，中间有个分界值指针，只需要朝着没用过的内存方向将该指针移动对象内存大小位置即可</li>
-<li>GC收集器： <code>Serial ParNew</code></li>
-</ul>
-</li>
-<li><strong>空闲列表</strong>：<ul>
-<li>适用场合：堆内存不规整的情况</li>
-<li>原理：虚拟机会维护一块列表，列表中会记录哪些内存块是可以用的，在分配的时候再这里找一块足够大的内存块来划分给对象实例，然后更新列表记录</li>
-<li>GC收集器：<code>CMS</code></li>
-</ul>
-</li>
-</ul>
-<p><strong>内存分配的并发问题：</strong></p>
-<p>​    虚拟机采用两种方式保证线程安全</p>
-<ul>
-<li><strong>CAS+失败重试：</strong>CAS是乐观锁的一种实现方式，虚拟机采用CAS加上失败重试来保证更新操作的原子性</li>
-<li><strong>TLAB：</strong>TLAB指的是为每一个线程提前在Eden区划分一块内存区域，JVM再给对象分配内存的时候预先在TLAB分配，如果对象大于TLAB中的剩余内存或者TLAB内存用完的时候，再使用CAS+失败重试来划分内存。</li>
-</ul>
-</li>
-<li><p><strong>初始化零值：</strong></p>
-<p>内存分配完成后，虚拟机需要将分配到的内存空间都初始化为零值（除了对象头），保证了对象的实例字段再Java代码中可以不赋初始值就能直接使用，程序能直接访问到这些字段数据类型所对应的零值</p>
-</li>
-<li><p><strong>设置对象头：</strong></p>
-<p>初始化零值完成之后，<strong>虚拟机要对对象进行必要的设置</strong>，例如这个对象是哪个类的实例、如何才能找到类的元数据信息、对象的哈希码、对象的 GC 分代年龄等信息。 <strong>这些信息存放在对象头中。</strong> 另外，根据虚拟机当前运行状态的不同，如是否启用偏向锁等，对象头会有不同的设置方式。</p>
-</li>
-<li><p><strong>执行init方法：</strong></p>
-<p>这时候所有字段都是零，所以需要执行init方法，把对象按照程序员的意愿初始化，这样真正可用的对象才完全产生。</p>
-</li>
-</ol>
-
+    <h1 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h1><p>记录学习JVM内存区域的笔记</p>
+    
+    <a class="article-more-a" href="/2021/04/22/JVM/#more">more >></a>
+    
     
 
     
