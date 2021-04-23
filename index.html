@@ -198,6 +198,89 @@
             
 
   
+    <article id="post-Synchronized" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+  <div class="article-entry" itemprop="articleBody">
+    
+    <p><strong><code>Synchronized</code>解决的是多个线程之间访问资源的同步性，可以保证被它修饰的方法或者代码块在任意时刻只有一个线程在执行。</strong></p>
+<p><code>JDK1.5</code>之前，<code>Synchronized</code>是个<strong>重量级锁</strong>，效率较低。JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。</p>
+<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><h3 id="1-1-Synchronized的作用"><a href="#1-1-Synchronized的作用" class="headerlink" title="1.1 Synchronized的作用"></a>1.1 <strong><code>Synchronized</code>的作用</strong></h3><ul>
+<li>原子性：确保线程互斥访问同步代码</li>
+<li>可见性：确保变量修改能被及时看见（<strong>Java内存模型中 “对一个变量unlock操作前，必须同步到主存；如果对一个变量进行lock，则会先清空工作内存中该变量的值，在执行引擎使用本变量前，需要重新从主内存中Load操作或者assign操作初始化变量值。”</strong>）</li>
+<li>有序性：解决重排序问题。（<strong>一个变量统一时刻只允许一个线程进行Lock操作</strong>）</li>
+</ul>
+<h3 id="1-2-Synchronized的使用"><a href="#1-2-Synchronized的使用" class="headerlink" title="1.2 Synchronized的使用"></a>1.2 <code>Synchronized</code>的使用</h3><ul>
+<li><p>修饰实例方法：对当前对象实例加锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">method</span><span class="params">()</span></span>&#123;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>修饰静态方法：给当前类加锁。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">synchronized</span>  <span class="keyword">void</span> <span class="keyword">static</span> <span class="title">method</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>修饰代码块：指定加锁对象，对给定对象/类加锁。<code>synchronized(this|object)</code> 表示进入同步代码库前要获得<strong>给定对象的锁</strong>。<code>synchronized(类.class)</code> 表示进入同步代码前要获得 <strong>当前 class 的锁</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span>(<span class="keyword">this</span>)&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>总结：</p>
+<ul>
+<li><code>synchronized</code>加在静态方法和代码块上都是给class类加锁</li>
+<li><code>synchronized</code>加载实例方法上是给对象实例上锁</li>
+<li>尽量不要使用<code>synchronized(String a)</code>，因为字符串常量池有缓存功能。</li>
+</ul>
+<h2 id="2-原理"><a href="#2-原理" class="headerlink" title="2. 原理"></a>2. 原理</h2><h3 id="2-1-synchronized修饰代码块"><a href="#2-1-synchronized修饰代码块" class="headerlink" title="2.1 synchronized修饰代码块"></a>2.1 <code>synchronized</code>修饰代码块</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SynchronizedDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">method</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Method 1 start&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反编译后：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/2062729-b98084591219da8c.png" alt="img"></p>
+<p><code>synchronized</code>同步代码块使用的是<code>monitorenter</code>和<code>monitorexit</code>指令，当执行<code>monitorenter</code>时候，线程试图获取锁，也就是获取监视器锁<code>monitor</code>的所有权，当<code>minitor</code>被占用时就是出于锁定状态</p>
+<p>在执行<code>monitorenter</code>时，会尝试获取对象的锁，如果锁的计数器为 0 则表示锁可以被获取，获取后将锁计数器设为 1 也就是加 1。</p>
+<p>在执行 <code>monitorexit</code> 指令后，将锁计数器设为 0，表明锁被释放。如果获取对象锁失败，那当前线程就要阻塞等待，直到锁被另外一个线程释放为止。</p>
+<p>**<code>monitorexit</code>指令出现了两次，正常情况下，同步代码块会调用第一个<code>monitorexit</code> ，如果同步代码块中间出现异常，则调用第二个<code>monitorexit</code> **</p>
+<h3 id="2-2-synchronized修饰方法"><a href="#2-2-synchronized修饰方法" class="headerlink" title="2.2 synchronized修饰方法"></a>2.2 <code>synchronized</code>修饰方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SynchronizedDemo2</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">method</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;synchronized 方法&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://my-blog-to-use.oss-cn-beijing.aliyuncs.com/2019-6/synchronized%E5%85%B3%E9%94%AE%E5%AD%97%E5%8E%9F%E7%90%862.png" alt="synchronized关键字原理"></p>
+<p><code>synchronized</code> 修饰的方法并没有 <code>monitorenter</code> 指令和 <code>monitorexit</code> 指令，取得代之的确实是 <code>ACC_SYNCHRONIZED</code> 标识，该标识指明了该方法是一个同步方法。JVM 通过该 <code>ACC_SYNCHRONIZED</code> 访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。</p>
+
+    
+
+    
+
+    
+
+  </div>
+  <div class="article-info article-info-index">
+    
+    
+    
+
+    
+    <p class="article-more-link">
+      <a class="article-more-a" href="/2021/04/23/Synchronized/">展开全文 >></a>
+    </p>
+    
+
+    
+    <div class="clearfix"></div>
+  </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-JVM" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
